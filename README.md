@@ -1,13 +1,13 @@
 ## MCP Idempotency Demo (Streamable HTTP, Python)
 
-This repo contains a minimal demo you can use when proposing a reserved `_meta.idempotencyKey`
+This repo contains a minimal demo proposing a reserved `_meta.idempotencyKey`
 field in the MCP spec, using **Python**, the **MCP Python SDK**, and the **Streamable HTTP**
 transport.
 
 ### Components
 
 - **`server_non_idempotent.py`**: MCP server with tools:
-  - `make_payment(IBAN, BIC, minorUnits, currency)` – _not_ idempotent; on retry it charges again.
+  - `make_payment(IBAN, BIC, amountMinorUnits, currency)` – _not_ idempotent; on retry it charges again.
   - `getBalance()` – returns `{ "balanceMinorUnits": <int> }`.
   - `getTransactions()` – returns `{ "transactions": [...] }`.
 - **`server_idempotent.py`**: Same tools, but `make_payment` uses `_meta.idempotencyKey` to be
