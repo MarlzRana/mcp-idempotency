@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import time
 from typing import Dict, List, Optional
+from uuid import UUID
 
 import uvicorn
 from fastmcp import FastMCP
@@ -24,9 +25,15 @@ class Account(TypedDict):
     transactions: List[Transaction]
 
 
-accounts: Dict[str, Account] = {
-    "account-1": {"balance_minor_units": 100_00, "transactions": []},
-    "account-2": {"balance_minor_units": 200_00, "transactions": []},
+accounts: Dict[UUID, Account] = {
+    UUID("b4d8ada9-74a1-4c64-9ba3-a1af8c8307eb"): {
+        "balance_minor_units": 100_00,
+        "transactions": [],
+    },
+    UUID("1a57e024-09db-4402-801b-4f75b1a05a8d"): {
+        "balance_minor_units": 200_00,
+        "transactions": [],
+    },
 }
 
 processed_keys: set[str] = set()
@@ -37,7 +44,7 @@ mcp = FastMCP("Idempotent Payments Demo")
 
 
 @mcp.tool()
-def get_balance(account_uid: str) -> Dict[str, int]:
+def get_balance(account_uid: UUID) -> Dict[str, int]:
     """
     Return the current balance in minor units for the specified account.
     """
@@ -48,7 +55,7 @@ def get_balance(account_uid: str) -> Dict[str, int]:
 
 
 @mcp.tool()
-def get_transactions(account_uid: str) -> Dict[str, List[Transaction]]:
+def get_transactions(account_uid: UUID) -> Dict[str, List[Transaction]]:
     """
     Return the list of processed transactions for the specified account.
     """
@@ -60,7 +67,7 @@ def get_transactions(account_uid: str) -> Dict[str, List[Transaction]]:
 
 @mcp.tool(annotations=ToolAnnotations(idempotentHint=True))
 def make_payment(
-    account_uid: str,
+    account_uid: UUID,
     IBAN: str,
     BIC: str,
     amountInMinorUnits: int,

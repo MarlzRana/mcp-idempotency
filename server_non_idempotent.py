@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import time
 from typing import Dict, List
+from uuid import UUID
 
 import uvicorn
 from fastmcp import FastMCP
@@ -20,39 +21,49 @@ class Account(TypedDict):
     balance_minor_units: int
     transactions: List[Transaction]
 
-accounts: Dict[str, Account] = {
-    "account-1": {"balance_minor_units": 100_00, "transactions": []},
-    "account-2": {"balance_minor_units": 200_00, "transactions": []},
+
+accounts: Dict[UUID, Account] = {
+    UUID("b4d8ada9-74a1-4c64-9ba3-a1af8c8307eb"): {
+        "balance_minor_units": 100_00,
+        "transactions": [],
+    },
+    UUID("1a57e024-09db-4402-801b-4f75b1a05a8d"): {
+        "balance_minor_units": 200_00,
+        "transactions": [],
+    },
 }
 
 num_calls_executed = 0
 
 mcp = FastMCP("Non-Idempotent Payments Demo")
 
+
 @mcp.tool()
-def get_balance(account_uid: str) -> Dict[str, int]:
+def get_balance(account_uid: UUID) -> Dict[str, int]:
     """
     Return the current balance in minor units for the specified account.
     """
     if account_uid not in accounts:
         raise ToolError(f"Account {account_uid} not found")
-    
+
     return {"balanceMinorUnits": accounts[account_uid]["balance_minor_units"]}
 
 
 @mcp.tool()
-def get_transactions(account_uid: str) -> Dict[str, List[Transaction]]:
+def get_transactions(account_uid: UUID) -> Dict[str, List[Transaction]]:
     """
     Return the list of processed transactions for the specified account.
     """
     if account_uid not in accounts:
         raise ToolError(f"Account {account_uid} not found")
-    
+
     return {"transactions": accounts[account_uid]["transactions"]}
 
 
 @mcp.tool()
-def make_payment(account_uid: str, IBAN: str, BIC: str, amountInMinorUnits: int, currency: str) -> Dict[str, str]:
+def make_payment(
+    account_uid: UUID, IBAN: str, BIC: str, amountInMinorUnits: int, currency: str
+) -> Dict[str, str]:
     """
     Deliberately *non*-idempotent payment tool.
 
@@ -70,19 +81,23 @@ def make_payment(account_uid: str, IBAN: str, BIC: str, amountInMinorUnits: int,
 
     current_balance = accounts[account_uid]["balance_minor_units"]
     if current_balance - amountInMinorUnits < 0:
-        raise ValueError(f"Insufficient funds: balance {current_balance} cannot cover payment of {amountInMinorUnits}")
+        raise ValueError(
+            f"Insufficient funds: balance {current_balance} cannot cover payment of {amountInMinorUnits}"
+        )
 
     accounts[account_uid]["balance_minor_units"] -= amountInMinorUnits
-    accounts[account_uid]["transactions"].append({
-        "IBAN": IBAN,
-        "BIC": BIC,
-        "amountMinorUnits": amountInMinorUnits,
-        "currency": currency,
-    })
-    
+    accounts[account_uid]["transactions"].append(
+        {
+            "IBAN": IBAN,
+            "BIC": BIC,
+            "amountMinorUnits": amountInMinorUnits,
+            "currency": currency,
+        }
+    )
+
     if num_calls_executed % 2 == 0:
         time.sleep(5)
-    
+
     num_calls_executed += 1
 
     return {
@@ -94,5 +109,3 @@ def make_payment(account_uid: str, IBAN: str, BIC: str, amountInMinorUnits: int,
 if __name__ == "__main__":
     app = mcp.http_app()
     uvicorn.run(app, host="127.0.0.1", port=8000)
-
-
