@@ -62,7 +62,7 @@ def get_transactions(account_uid: UUID) -> Dict[str, List[Transaction]]:
 
 @mcp.tool()
 def make_payment(
-    account_uid: UUID, IBAN: str, BIC: str, amountInMinorUnits: int, currency: str
+    account_uid: UUID, iban: str, bic: str, amountInMinorUnits: int, currency: str
 ) -> Dict[str, str]:
     """
     Deliberately *non*-idempotent payment tool.
@@ -88,8 +88,8 @@ def make_payment(
     accounts[account_uid]["balance_minor_units"] -= amountInMinorUnits
     accounts[account_uid]["transactions"].append(
         {
-            "IBAN": IBAN,
-            "BIC": BIC,
+            "IBAN": iban,
+            "BIC": bic,
             "amountMinorUnits": amountInMinorUnits,
             "currency": currency,
         }

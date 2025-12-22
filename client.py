@@ -70,8 +70,8 @@ async def run_scenario(server_url: str, use_idempotency_key: bool) -> None:
 
     payment_params = {
         "account_uid": account_uid,
-        "IBAN": "DE89370400440532013000",
-        "BIC": "COBADEFFXXX",
+        "iban": "DE89370400440532013000",
+        "bic": "COBADEFFXXX",
         "amountInMinorUnits": 25_00,  # 25.00
         "currency": "EUR",
     }
