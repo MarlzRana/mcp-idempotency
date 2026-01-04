@@ -4,28 +4,32 @@ from fastmcp import Client
 from fastmcp.client.client import CallToolResult
 from mcp.shared.exceptions import McpError
 
-RESET = "\033[0m"
-BOLD = "\033[1m"
-CYAN = "\033[36m"
-GREEN = "\033[32m"
-YELLOW = "\033[33m"
-MAGENTA = "\033[35m"
-RED = "\033[31m"
+from enum import StrEnum
+
+
+class Color(StrEnum):
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+    CYAN = "\033[36m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    MAGENTA = "\033[35m"
+    RED = "\033[31m"
 
 
 def _pretty_print(message: str, emoji: str = "", color: str = "") -> None:
     """Print a message with optional emoji and color."""
     emoji_str = f"{emoji} " if emoji else ""
-    print(f"{color}{emoji_str}{message}{RESET}")
+    print(f"{color}{emoji_str}{message}{Color.RESET}")
 
 
 def _pretty_print_result(emoji: str, label: str, result: CallToolResult) -> None:
     """Pretty-print an MCP tool result with color and emojis (jq-style formatting)."""
     import json
 
-    prefix = f"{emoji} {BOLD}{label}{RESET}"
+    prefix = f"{emoji} {Color.BOLD}{label}{Color.RESET}"
     status_emoji = "❌" if result.is_error else "✅"
-    color = RED if result.is_error else GREEN
+    color = Color.RED if result.is_error else Color.GREEN
 
     try:
         if hasattr(result.data, "__dict__"):
@@ -57,9 +61,11 @@ async def run_scenario(server_url: str, use_idempotency_key: bool) -> None:
 
     kind = "idempotent 🔐" if use_idempotency_key else "non-idempotent ⚠️"
 
-    print(f"\n{MAGENTA}{BOLD}{'='*80}{RESET}")
-    _pretty_print(f"Demo against {server_url} ({kind})", "🚀", f"{MAGENTA}{BOLD}")
-    print(f"{MAGENTA}{BOLD}{'='*80}{RESET}\n")
+    print(f"\n{Color.MAGENTA}{Color.BOLD}{'='*80}{Color.RESET}")
+    _pretty_print(
+        f"Demo against {server_url} ({kind})", "🚀", f"{Color.MAGENTA}{Color.BOLD}"
+    )
+    print(f"{Color.MAGENTA}{Color.BOLD}{'='*80}{Color.RESET}\n")
 
     account_uid = "b4d8ada9-74a1-4c64-9ba3-a1af8c8307eb"
 
@@ -71,7 +77,7 @@ async def run_scenario(server_url: str, use_idempotency_key: bool) -> None:
         "account_uid": account_uid,
         "iban": "DE89370400440532013000",
         "bic": "COBADEFFXXX",
-        "amountInMinorUnits": 25_00,  # 25.00
+        "amountInMinorUnits": 25_00,
         "currency": "EUR",
     }
 
@@ -82,27 +88,29 @@ async def run_scenario(server_url: str, use_idempotency_key: bool) -> None:
     )
 
     _pretty_print(
-        "Calling make_payment (first attempt, expect timeout)...", "⏱️", YELLOW
+        "Calling make_payment (first attempt, expect timeout)...", "⏱️", Color.YELLOW
     )
     try:
         async with Client(server_url, timeout=2.0) as client:
             result1 = await client.call_tool("make_payment", payment_params, meta=meta)
-            _pretty_print("First call returned before timeout.", "⚠️", YELLOW)
+            _pretty_print("First call returned before timeout.", "⚠️", Color.YELLOW)
             _pretty_print_result("🧾", "First make_payment result", result1)
     except McpError as e:
         is_timeout = isinstance(e, McpError) and "Timed out" in str(e)
         error_type = "timeout" if is_timeout else type(e).__name__
         _pretty_print(
-            f"First make_payment had a transport issue: ({error_type}).", "⏳", RED
+            f"First make_payment had a transport issue: ({error_type}).",
+            "⏳",
+            Color.RED,
         )
 
-    _pretty_print("Retrying make_payment with same arguments...", "🔁", CYAN)
+    _pretty_print("Retrying make_payment with same arguments...", "🔁", Color.CYAN)
 
     async with Client(server_url, timeout=10.0) as client:
         result2 = await client.call_tool("make_payment", payment_params, meta=meta)
         _pretty_print_result("🧾", "Second make_payment result", result2)
 
-    _pretty_print("Getting final state...", "📊", CYAN)
+    _pretty_print("Getting final state...", "📊", Color.CYAN)
     async with Client(server_url) as client:
         final_balance = await client.call_tool(
             "get_balance", {"account_uid": account_uid}
