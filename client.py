@@ -1,6 +1,5 @@
 import asyncio
 
-import httpx
 from fastmcp import Client
 from fastmcp.client.client import CallToolResult
 from mcp.shared.exceptions import McpError
