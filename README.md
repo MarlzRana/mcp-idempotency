@@ -8,16 +8,16 @@ transport.
 
 - **`server_non_idempotent.py`**: MCP server with tools:
   - `make_payment(IBAN, BIC, amountMinorUnits, currency)` – _not_ idempotent; on retry it charges again.
-  - `getBalance()` – returns `{ "balanceMinorUnits": <int> }`.
-  - `getTransactions()` – returns `{ "transactions": [...] }`.
+  - `get_balance()` – returns `{ "balanceMinorUnits": <int> }`.
+  - `get_transactions()` – returns `{ "transactions": [...] }`.
 - **`server_idempotent.py`**: Same tools, but `make_payment` uses `_meta.idempotencyKey` to be
   idempotent. A retry with the same key does **not** apply the payment
   again.
 - **`client.py`**: A single client that:
-  1. Calls `getBalance`.
+  1. Calls `get_balance`.
   2. Calls `make_payment` once (the server is slow, so the HTTP client times out).
   3. Retries `make_payment` with the same arguments.
-  4. Calls `getBalance` and `getTransactions` again and prints the results.
+  4. Calls `get_balance` and `get_transactions` again and prints the results.
 
 The client runs this sequence once against the non-idempotent server and once against the
 idempotent server so you can directly compare the outcomes.
@@ -76,11 +76,11 @@ You should observe:
 - **Non-idempotent server**
   - First `make_payment` call: client logs a timeout, but the server has already applied the payment.
   - Second `make_payment` call: server applies the payment _again_ (no idempotency), so
-    `getBalance` shows two debits and `getTransactions` contains two matching payments.
+    `get_balance` shows two debits and `get_transactions` contains two matching payments.
 - **Idempotent server**
   - First `make_payment` call: client times out, but the server applies the payment once and stores
     the `_meta.idempotencyKey`.
-  - Second `make_payment` call with the same `_meta.idempotencyKey`: the server **does not** apply the payment again, so `getBalance` only shows a single debit and `getTransactions` has a single payment.
+  - Second `make_payment` call with the same `_meta.idempotencyKey`: the server **does not** apply the payment again, so `get_balance` only shows a single debit and `get_transactions` has a single payment.
 
 This provides a concrete, end-to-end illustration of why reserving a key like
 `_meta.idempotencyKey` in the MCP spec is valuable for safely retrying tools such as payments.
