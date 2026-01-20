@@ -1,6 +1,6 @@
 # Passthrough Options for Idempotency Key in MCP
 
-## 1. Pass through the idempotency key in the `_meta` object (Reserve `idempotencyKey` property)
+## 1. Pass through the idempotency key in the `_meta` object (Reserve `io.modelcontextprotocol/idempotency-key` property)
 
 ### CallToolRequest Example (JSON-RPC)
 
@@ -18,7 +18,7 @@
       "currency": "EUR"
     },
     "_meta": {
-      "idempotencyKey": "73c2eaf4-8cc4-4ba4-908f-7017f0aa2f4f"
+      "io.modelcontextprotocol/idempotency-key": "73c2eaf4-8cc4-4ba4-908f-7017f0aa2f4f"
     }
   }
 }

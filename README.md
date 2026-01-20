@@ -1,6 +1,6 @@
 ## MCP Idempotency Demo (Streamable HTTP, Python)
 
-This repo contains a minimal demo proposing a reserved `_meta.idempotencyKey`
+This repo contains a minimal demo proposing a reserved `_meta.io.modelcontextprotocol/idempotency-key`
 field in the MCP spec, using **Python**, the **MCP Python SDK**, and the **Streamable HTTP**
 transport.
 
@@ -10,7 +10,7 @@ transport.
   - `make_payment(IBAN, BIC, amountMinorUnits, currency)` – _not_ idempotent; on retry it charges again.
   - `get_balance()` – returns `{ "balanceMinorUnits": <int> }`.
   - `get_transactions()` – returns `{ "transactions": [...] }`.
-- **`server_idempotent.py`**: Same tools, but `make_payment` uses `_meta.idempotencyKey` to be
+- **`server_idempotent.py`**: Same tools, but `make_payment` uses `_meta.io.modelcontextprotocol/idempotency-key` to be
   idempotent. A retry with the same key does **not** apply the payment
   again.
 - **`client.py`**: A single client that:
@@ -59,7 +59,9 @@ Both servers expose an MCP **Streamable HTTP** endpoint that accepts JSON POST r
     "minorUnits": 2500,
     "currency": "EUR"
   },
-  "_meta": { "idempotencyKey": "73c2eaf4-8cc4-4ba4-908f-7017f0aa2f4f" }
+  "_meta": {
+    "io.modelcontextprotocol/idempotency-key": "73c2eaf4-8cc4-4ba4-908f-7017f0aa2f4f"
+  }
 }
 ```
 
@@ -79,8 +81,8 @@ You should observe:
     `get_balance` shows two debits and `get_transactions` contains two matching payments.
 - **Idempotent server**
   - First `make_payment` call: client times out, but the server applies the payment once and stores
-    the `_meta.idempotencyKey`.
-  - Second `make_payment` call with the same `_meta.idempotencyKey`: the server **does not** apply the payment again, so `get_balance` only shows a single debit and `get_transactions` has a single payment.
+    the `_meta.io.modelcontextprotocol/idempotency-key`.
+  - Second `make_payment` call with the same `_meta.io.modelcontextprotocol/idempotency-key`: the server **does not** apply the payment again, so `get_balance` only shows a single debit and `get_transactions` has a single payment.
 
 This provides a concrete, end-to-end illustration of why reserving a key like
-`_meta.idempotencyKey` in the MCP spec is valuable for safely retrying tools such as payments.
+`_meta.io.modelcontextprotocol/idempotency-key` in the MCP spec is valuable for safely retrying tools such as payments.

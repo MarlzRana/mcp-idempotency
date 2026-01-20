@@ -82,7 +82,9 @@ async def run_scenario(server_url: str, use_idempotency_key: bool) -> None:
     }
 
     meta = (
-        {"idempotencyKey": "7d17e09d-f4ee-449a-9441-00fcf3d83f76"}
+        {
+            "io.modelcontextprotocol/idempotency-key": "7d17e09d-f4ee-449a-9441-00fcf3d83f76"
+        }
         if use_idempotency_key
         else None
     )

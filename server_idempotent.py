@@ -74,7 +74,7 @@ def make_payment(
     currency: str,
 ) -> Dict[str, str]:
     """
-    Idempotent payment tool using `_meta.idempotencyKey`.
+    Idempotent payment tool using `_meta.io.modelcontextprotocol/idempotency-key`.
 
     Uses idempotency keys to prevent duplicate payments:
     - The first request with a new idempotency key will debit the account and record the transaction.
@@ -91,15 +91,20 @@ def make_payment(
         raise ToolError(f"Account {account_uid} not found")
 
     context = get_context()
-    meta = context.request_context.meta if context and context.request_context else None
+    meta = (
+        context.request_context.meta.model_dump() if context.request_context else None
+    )
+
+    print(meta)
+    print(type(meta))
 
     key_in_meta: Optional[str] = None
-    if meta and hasattr(meta, "idempotencyKey"):
-        key_in_meta = str(meta.idempotencyKey)
+    if meta:
+        key_in_meta = meta.get("io.modelcontextprotocol/idempotency-key")
 
     if not key_in_meta:
         raise ToolError(
-            "Missing required _meta.idempotencyKey for idempotent operation."
+            "Missing required _meta.io.modelcontextprotocol/idempotency-key for idempotent operation."
         )
 
     if key_in_meta in processed_keys:
